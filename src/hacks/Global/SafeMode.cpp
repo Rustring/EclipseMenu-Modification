@@ -208,6 +208,16 @@ namespace eclipse::hacks::Global {
         return btn;
     }
 
+    class $modify(SafeModeRLLHook, RetryLevelLayer) {
+        void customSetup() override {
+            RetryLevelLayer::customSetup();
+            if (!config::get<bool>("labels.cheat-indicator.endscreen", true))
+                return;
+
+            m_mainMenu->addChild(createCI());
+        }
+    };
+
     class $modify(SafeModeELLHook, EndLevelLayer) {
         void customSetup() override {
             EndLevelLayer::customSetup();
