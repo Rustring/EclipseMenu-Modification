@@ -19,16 +19,16 @@ jobs:
           os: windows-latest
           build-type: RelWithDebInfo
 
-      #  - name: macOS
-      #    os: macos-latest
+        - name: macOS
+          os: macos-latest
 
-    #    - name: Android32
-    #      os: ubuntu-latest
-    #      target: Android32
+        - name: Android32
+          os: ubuntu-latest
+          target: Android32
 
-     #   - name: Android64
-     #     os: ubuntu-latest
-     #     target: Android64
+        - name: Android64
+          os: ubuntu-latest
+          target: Android64
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -76,11 +76,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: stable-rolling
-          prerelease: false
-          name: 'Stable Rolling Release'
+          tag_name: rolling-release
+          prerelease: true
+          name: 'Rolling Release'
           body: |
-            This is a stable build of the mod for commit ${{ github.sha }} (${{ github.event.head_commit.message }}).
+            This is the latest build of the mod for commit ${{ github.sha }} (${{ github.event.head_commit.message }}).
             
             ## IMPORTANT NOTICE FOR PEOPLE:
             
@@ -90,7 +90,9 @@ jobs:
 
             ## Supported Platforms Of This Build:
 
-            1. Supports Windows ONLY right now
+            1. Windows
+            2. MacOS
+            3. Android
           files: |
             ${{ github.workspace }}/bin/eclipse.eclipse-menu.geode
             ${{ github.workspace }}/bin/eclipse.eclipse-menu.pdb
