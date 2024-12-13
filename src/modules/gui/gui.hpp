@@ -67,11 +67,18 @@ namespace eclipse::gui {
             return this;
         }
 
+        /// @brief Whether the component is being searched for or not
+        bool isSearchedFor() const { return m_isSearchedFor; };
+
+        /// @brief Sets the component's search state
+        void setSearchedFor(bool state) { m_isSearchedFor = state; };
+
     protected:
         static size_t m_uniqueID;
         size_t m_uid;
         ComponentType m_type = ComponentType::Unknown;
         bool m_noSave = false;
+        bool m_isSearchedFor = false;
         std::string m_description;
     };
 
@@ -766,17 +773,18 @@ namespace eclipse::gui {
             return this;
         }
 
-        void triggerDeleteCallback() const {
-            if (m_deleteCallback) m_deleteCallback();
-        }
+        void triggerDeleteCallback() const;
 
-        void triggerEditCallback() const {
-            if (m_editCallback) m_editCallback();
-        }
+        void triggerEditCallback() const;
 
         void triggerMoveCallback(bool up) const {
             if (m_moveCallback) m_moveCallback(up);
         }
+
+        /// @brief Allows to set keybinds for the label.
+        LabelSettingsComponent* handleKeybinds();
+
+        [[nodiscard]] bool hasKeybind() const { return m_hasKeybind; }
 
     private:
         std::string m_id;
@@ -784,12 +792,14 @@ namespace eclipse::gui {
         std::function<void()> m_deleteCallback;
         std::function<void()> m_editCallback;
         std::function<void(bool)> m_moveCallback;
+        bool m_hasKeybind = false;
     };
 
     /// @brief Contains a list of components and a title, to be passed into render engine.
     class MenuTab {
     public:
-        explicit MenuTab(std::string title) : m_title(std::move(title)) {}
+        explicit MenuTab(std::string title, bool isSearchedFor)
+            : m_title(std::move(title)), m_isSearchedFor(isSearchedFor) {}
 
         /// @brief Add a component to the tab.
         void addComponent(const std::shared_ptr<Component>& component);
@@ -911,8 +921,15 @@ namespace eclipse::gui {
         /// @brief Find a tab by name (or create a new one if it does not exist).
         static std::shared_ptr<MenuTab> find(std::string_view name);
 
+        /// @brief Whether the tab is being searched for or not
+        bool isSearchedFor() const { return m_isSearchedFor; };
+
+        /// @brief Sets the tab's search state
+        void setSearchedFor(bool state) { m_isSearchedFor = state; };
+
     private:
         std::string m_title;
+        bool m_isSearchedFor;
         std::vector<std::shared_ptr<Component>> m_components;
     };
 

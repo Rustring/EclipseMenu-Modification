@@ -67,8 +67,6 @@ class $modify(EclipseButtonMLHook, MenuLayer) {
             ? gui::RendererType::Cocos2d
             : gui::RendererType::ImGui;
         gui::ThemeManager::get()->setRenderer(type);
-
-        geode::log::info("Switched renderer to {}", type == gui::RendererType::ImGui ? "ImGui" : "Cocos2d");
     }
 };
 
@@ -177,6 +175,49 @@ $on_mod(Loaded) {
         auto backgroundColor = tab->addColorComponent("Background Color", "background", true);
         backgroundColor->callback([](const Color& color) {
             ThemeManager::get()->applyBackgroundColor(color);
+        })->disableSaving();
+
+        auto searchInput = tab->addInputText("Search", "search");
+        searchInput->callback([](std::string input) {
+            static bool hasSearched = false;
+
+            if (input.empty())
+            {
+                if (hasSearched)
+                {
+                    for (auto& tab : Engine::get()->getTabs())
+                    {
+                        tab->setSearchedFor(false);
+
+                        for (auto& component : tab->getComponents())
+                            component->setSearchedFor(false);
+                    }
+
+                    hasSearched = false;
+                }
+            }
+            else
+            {
+                hasSearched = true;
+
+                for (auto& tab : Engine::get()->getTabs())
+                {
+                    bool hasFoundComponent = false;
+
+                    for (auto& component : tab->getComponents())
+                    {
+                        if (utils::matchesStringFuzzy(component->getTitle(), input))
+                        {
+                            component->setSearchedFor(true);
+                            hasFoundComponent = true;
+                        }
+                        else
+                            component->setSearchedFor(false);
+                    }
+
+                    tab->setSearchedFor(hasFoundComponent);
+                }
+            }
         })->disableSaving();
     }
 

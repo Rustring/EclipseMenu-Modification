@@ -53,7 +53,7 @@ namespace eclipse::gui {
 
     void ToggleComponent::addOptions(const std::function<void(std::shared_ptr<MenuTab>)>& options) {
         if (!m_options)
-            m_options = std::make_shared<MenuTab>(m_title);
+            m_options = std::make_shared<MenuTab>(m_title, false);
 
         options(m_options);
     }
@@ -232,6 +232,35 @@ namespace eclipse::gui {
         return this;
     }
 
+    void LabelSettingsComponent::triggerDeleteCallback() const {
+        if (m_deleteCallback) m_deleteCallback();
+
+        // We also have to clean up the keybind
+        keybinds::Manager::get()->unregisterKeybind(fmt::format("label.{}", m_settings->id));
+    }
+
+    void LabelSettingsComponent::triggerEditCallback() const {
+        if (m_editCallback) m_editCallback();
+
+        // Update the keybind title
+        auto keybind = keybinds::Manager::get()->getKeybind(fmt::format("label.{}", m_settings->id));
+        if (keybind.has_value()) {
+            keybind->get().setTitle(m_settings->name);
+        } else {
+            geode::log::warn("Keybind with ID 'label.{}' not found", m_settings->id);
+        }
+    }
+
+    LabelSettingsComponent* LabelSettingsComponent::handleKeybinds() {
+        keybinds::Manager::get()->registerKeybind(fmt::format("label.{}", m_settings->id), m_settings->name, [this](bool down){
+            if (!down) return;
+            this->m_settings->visible = !this->m_settings->visible;
+            this->triggerEditCallback();
+        });
+        m_hasKeybind = true;
+        return this;
+    }
+
     void MenuTab::addComponent(const std::shared_ptr<Component>& component) {
         m_components.push_back(component);
         component->onInit();
@@ -302,7 +331,7 @@ namespace eclipse::gui {
         }
 
         // If the tab does not exist, create a new one.
-        auto tab = std::make_shared<MenuTab>(std::string(name));
+        auto tab = std::make_shared<MenuTab>(std::string(name), false);
         m_tabs.push_back(tab);
 
         return tab;
